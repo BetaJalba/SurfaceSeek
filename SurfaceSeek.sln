@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurfaceSeek", "SurfaceSeek\SurfaceSeek.csproj", "{03DE1EA5-3D01-44ED-817F-20CAE98C4DBC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{03DE1EA5-3D01-44ED-817F-20CAE98C4DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03DE1EA5-3D01-44ED-817F-20CAE98C4DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03DE1EA5-3D01-44ED-817F-20CAE98C4DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03DE1EA5-3D01-44ED-817F-20CAE98C4DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {084D7C62-AAEF-4206-887F-B296C8D872D7}
+	EndGlobalSection
+EndGlobal
