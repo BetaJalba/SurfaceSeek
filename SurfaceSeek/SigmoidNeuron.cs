@@ -120,7 +120,7 @@ namespace SurfaceSeek
 
     public static class Functions
     {
-        static double Cost(double[,] real, double[,] predicted)
+        public static double Cost(double[,] real, double[,] predicted)
         {
             int rows = real.GetLength(0);
             int cols = real.GetLength(1);
@@ -133,7 +133,7 @@ namespace SurfaceSeek
             return sum / (rows * cols);
         }
 
-        static double[,] CostPrime(double[,] real, double[,] predicted)
+        public static double[,] CostPrime(double[,] real, double[,] predicted)
         {
             int rows = real.GetLength(0);
             int cols = real.GetLength(1);
@@ -205,6 +205,27 @@ namespace SurfaceSeek
                 for (int j = 0; j < h; j++)
                 {
                     result[j, i] = matrix[i, j];
+                }
+            }
+
+            return result;
+        }
+
+        public static (double, double)[,] ZipMatrices(double[,] matrix1, double[,] matrix2)
+        {
+            int rows = matrix1.GetLength(0);
+            int cols = matrix1.GetLength(1);
+
+            if (rows != matrix2.GetLength(0) || cols != matrix2.GetLength(1))
+                throw new ArgumentException("Matrices must have the same dimensions.");
+
+            var result = new (double, double)[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = (matrix1[i, j], matrix2[i, j]);
                 }
             }
 
