@@ -2,19 +2,21 @@
 using SurfaceSeek;
 using Numpy;
 
-double[][] X = new double[4][];
-double[] Y = new double[4] { 0, 1, 1, 0 };
+double[][,] X = new double[4][,];
+double[][,] Y = new double[4][,];
 
-X[0] = new double[] { 0, 0 };
-X[1] = new double[] { 0, 1 };
-X[2] = new double[] { 1, 0 };
-X[3] = new double[] { 1, 1 };
+// Inputs
+X[0] = new double[,] { { 0 }, { 0 } };
+X[1] = new double[,] { { 0 }, { 1 } };
+X[2] = new double[,] { { 1 }, { 0 } };
+X[3] = new double[,] { { 1 }, { 1 } };
 
-np.array(X);
-np.array(Y);
 
-var X1 = np.reshape(X, (4, 2, 1));
-var Y1 = np.reshape(X, (4, 1, 1));
+// Outputs
+Y[0] = new double[,] { { 0 } };
+Y[1] = new double[,] { { 1 } };
+Y[2] = new double[,] { { 1 } };
+Y[3] = new double[,] { { 0 } };
 
 
 NeuronLayer[] network = 
@@ -30,16 +32,31 @@ double learningRate = 0.1;
 
 for(int i = 0; i < epochs; i++)
 {
-    var error = 0;
+    var error = 0.0;
+    var len = 0;
 
-    //foreach(var items in )
-    //{
-    //    var output = items.First;
+    for (int j = 0; j < X.Length; j++)
+    {
+        // Aggiorna input iniziale
+        double[,] output = X[j];
 
-    //    foreach (var layer in network)
-    //        output = layer.ForwardPropagation(output);
+        // Propagazione avanti
+        foreach (var layer in network)
+            output = layer.ForwardPropagation(output);
 
-    //    error += Functions.Cost(Y, out)
-    //}
+        // Calcolo errore
+        error += Functions.Cost(Y[j], output);
 
+        // Propagazione indietro
+        Array.Reverse(network);
+
+        var gradient = Functions.CostPrime(Y[j], output);
+        foreach (var layer in network)
+            gradient = layer.BackwardPropagation(learningRate, gradient);
+
+        len = X.Length;
+        error /= len;
+
+        Console.WriteLine(error);
+    }
 }

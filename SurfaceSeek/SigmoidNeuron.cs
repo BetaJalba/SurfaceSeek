@@ -22,11 +22,11 @@ namespace SurfaceSeek
         {
             Random rand = new();
 
-            weights = new double[inputSize, outputSize];
+            weights = new double[outputSize, inputSize];
             biases = new double[outputSize, 1];
 
-            for (int i = 0; i < inputSize; i++)
-                for (int j = 0; j < outputSize; j++)
+            for (int i = 0; i < outputSize; i++)
+                for (int j = 0; j < inputSize; j++)
                     weights[i, j] = rand.NextDouble(); // Initialize weights randomly
             for (int i = 0; i < outputSize; i++)
                 biases[i, 0] = rand.NextDouble(); // Initialize biases randomly
@@ -38,9 +38,12 @@ namespace SurfaceSeek
             return this.inputs;
         }
 
-        public virtual double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient)
+        public virtual double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
             // Backward pass
+            double[,] useableLearningRate = new double[1, weights.GetLength(1)];
+            for (int i = 0; i < useableLearningRate.GetLength(1); i++)
+                useableLearningRate[0, i] = learningRate;
 
             // Compute the gradient of the loss function with respect to the weights and biases
             var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(inputs));
@@ -49,8 +52,8 @@ namespace SurfaceSeek
             var r = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the inputs
 
             // Update weights and biases with new values
-            weights = Functions.MatrixSubtraction(Functions.MatrixMultiply(learningRate, weightsGradient), weights);
-            biases = Functions.MatrixSubtraction(Functions.MatrixMultiply(learningRate, outputGradient), biases);
+            weights = Functions.MatrixSubtraction(Functions.MatrixMultiply(useableLearningRate, weightsGradient), weights);
+            biases = Functions.MatrixSubtraction(Functions.MatrixMultiply(useableLearningRate, outputGradient), biases);
 
             return r;
         }
@@ -79,7 +82,7 @@ namespace SurfaceSeek
             return activation(inputs);
         }
 
-        public override double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient)
+        public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
             return Functions.MatrixMultiply(outputGradient, activationPrime(this.inputs));
         }
@@ -205,27 +208,6 @@ namespace SurfaceSeek
                 for (int j = 0; j < h; j++)
                 {
                     result[j, i] = matrix[i, j];
-                }
-            }
-
-            return result;
-        }
-
-        public static (double, double)[,] ZipMatrices(double[,] matrix1, double[,] matrix2)
-        {
-            int rows = matrix1.GetLength(0);
-            int cols = matrix1.GetLength(1);
-
-            if (rows != matrix2.GetLength(0) || cols != matrix2.GetLength(1))
-                throw new ArgumentException("Matrices must have the same dimensions.");
-
-            var result = new (double, double)[rows, cols];
-
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    result[i, j] = (matrix1[i, j], matrix2[i, j]);
                 }
             }
 
