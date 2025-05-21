@@ -10,9 +10,13 @@ namespace SurfaceSeek
     public class NeuronLayer
     {
         public double[,] learningRate; // Learning rate for the layer
-        double[,] inputs;
+        protected double[,] inputs;
         double[,] weights; // Inputs to the layer
         double[,] biases; // Weights for each input
+
+        public NeuronLayer()
+        {
+        }
 
         public NeuronLayer(int inputSize, int outputSize, double learningRate)
         {
@@ -34,7 +38,7 @@ namespace SurfaceSeek
             return this.inputs;
         }
 
-        public virtual double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient, double[,] inputs)
+        public virtual double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient)
         {
             // Backward pass
 
@@ -54,29 +58,93 @@ namespace SurfaceSeek
         public class ActivationLayer : NeuronLayer
         {
             Func<double[,], double[,]> activation;
-            Func<(double[,], double[,], double[,]), double[,]> activationPrime
+            Func<double[,], double[,]> activationPrime;
 
-            public ActivationLayer(Func<double[,], double[,]> activation, Func<(double[,], double[,], double[,]), double[,]> activationPrime)
+            public ActivationLayer() : base()
+            {
+            }
+
+            public ActivationLayer(Func<double[,], double[,]> activation, Func<double[,], double[,]> activationPrime) : base()
             {
                 this.activation = activation;
-                this.activationPrime = activationPrime;
+                this.activationPrime = activationPrime; // The derivative of activation
             }
 
             public override double[,] ForwardPropagation(double[,] inputs)
             {
-                this.inputs = activation(inputs);
-                return (activation(inputs));
+                this.inputs = inputs;
+                return activation(inputs);
             }
 
-            public override double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient, double[,] inputs)
+            public override double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient)
             {
-                return base.BackwardPropagation(learningRate, outputGradient, inputs);
+                return Functions.MatrixMultiply(outputGradient, activationPrime(this.inputs));
+            }
+        }
+
+        public class Tanh : ActivationLayer
+        {
+            static Func<double[,], double[,]> tanh = x =>
+            {
+                double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+
+                for (int i = 0; i < x.GetLength(0); i++)
+                    for (int j = 0; j < x.GetLength(1); j++)
+                        r[i, j] = Math.Tanh(x[i, j]);
+
+                return r;
+            };
+
+            static Func<double[,], double[,]> tanhPrime = x =>
+            {
+                double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+
+                for (int i = 0; i < x.GetLength(0); i++)
+                    for (int j = 0; j < x.GetLength(1); j++)
+                    {
+                        double th = Math.Tanh(x[i, j]);
+                        r[i, j] = 1 - th * th; // tanh'(x) = 1 - tanh(x)^2
+                    }
+
+                return r;
+            };
+
+            public Tanh() : base(tanh, tanhPrime)
+            {   
+
             }
         }
     }
 
     public static class Functions
     {
+        static double Cost(double[,] real, double[,] predicted)
+        {
+            int rows = real.GetLength(0);
+            int cols = real.GetLength(1);
+            double sum = 0.0;
+
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    sum += Math.Pow(predicted[i, j] - real[i, j], 2);
+
+            return sum / (rows * cols);
+        }
+
+        static double[,] CostPrime(double[,] real, double[,] predicted)
+        {
+            int rows = real.GetLength(0);
+            int cols = real.GetLength(1);
+            double[,] gradient = new double[rows, cols];
+            double scale = 2.0 / (rows * cols);
+
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    gradient[i, j] = scale * (predicted[i, j] - real[i, j]);
+
+            return gradient;
+        }
+
         public static double[,] MatrixMultiply(double[,] a, double[,] b)
         {
             int aRows = a.GetLength(0);
