@@ -4,12 +4,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static SurfaceSeek.Tanh;
 
 namespace SurfaceSeek
 {
     public class NeuronLayer
     {
-        public double[,] learningRate; // Learning rate for the layer
         protected double[,] inputs;
         double[,] weights; // Inputs to the layer
         double[,] biases; // Weights for each input
@@ -18,7 +18,7 @@ namespace SurfaceSeek
         {
         }
 
-        public NeuronLayer(int inputSize, int outputSize, double learningRate)
+        public NeuronLayer(int inputSize, int outputSize)
         {
             Random rand = new();
 
@@ -55,64 +55,66 @@ namespace SurfaceSeek
             return r;
         }
 
-        public class ActivationLayer : NeuronLayer
+        
+    }
+
+    public class ActivationLayer : NeuronLayer
+    {
+        Func<double[,], double[,]> activation;
+        Func<double[,], double[,]> activationPrime;
+
+        public ActivationLayer() : base()
         {
-            Func<double[,], double[,]> activation;
-            Func<double[,], double[,]> activationPrime;
-
-            public ActivationLayer() : base()
-            {
-            }
-
-            public ActivationLayer(Func<double[,], double[,]> activation, Func<double[,], double[,]> activationPrime) : base()
-            {
-                this.activation = activation;
-                this.activationPrime = activationPrime; // The derivative of activation
-            }
-
-            public override double[,] ForwardPropagation(double[,] inputs)
-            {
-                this.inputs = inputs;
-                return activation(inputs);
-            }
-
-            public override double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient)
-            {
-                return Functions.MatrixMultiply(outputGradient, activationPrime(this.inputs));
-            }
         }
 
-        public class Tanh : ActivationLayer
+        public ActivationLayer(Func<double[,], double[,]> activation, Func<double[,], double[,]> activationPrime) : base()
         {
-            static Func<double[,], double[,]> tanh = x =>
-            {
-                double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+            this.activation = activation;
+            this.activationPrime = activationPrime; // The derivative of activation
+        }
 
-                for (int i = 0; i < x.GetLength(0); i++)
-                    for (int j = 0; j < x.GetLength(1); j++)
-                        r[i, j] = Math.Tanh(x[i, j]);
+        public override double[,] ForwardPropagation(double[,] inputs)
+        {
+            this.inputs = inputs;
+            return activation(inputs);
+        }
 
-                return r;
-            };
+        public override double[,] BackwardPropagation(double[,] learningRate, double[,] outputGradient)
+        {
+            return Functions.MatrixMultiply(outputGradient, activationPrime(this.inputs));
+        }
+    }
 
-            static Func<double[,], double[,]> tanhPrime = x =>
-            {
-                double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+    public class Tanh : ActivationLayer
+    {
+        static Func<double[,], double[,]> tanh = x =>
+        {
+            double[,] r = new double[x.GetLength(0), x.GetLength(1)];
 
-                for (int i = 0; i < x.GetLength(0); i++)
-                    for (int j = 0; j < x.GetLength(1); j++)
-                    {
-                        double th = Math.Tanh(x[i, j]);
-                        r[i, j] = 1 - th * th; // tanh'(x) = 1 - tanh(x)^2
-                    }
+            for (int i = 0; i < x.GetLength(0); i++)
+                for (int j = 0; j < x.GetLength(1); j++)
+                    r[i, j] = Math.Tanh(x[i, j]);
 
-                return r;
-            };
+            return r;
+        };
 
-            public Tanh() : base(tanh, tanhPrime)
-            {   
+        static Func<double[,], double[,]> tanhPrime = x =>
+        {
+            double[,] r = new double[x.GetLength(0), x.GetLength(1)];
 
-            }
+            for (int i = 0; i < x.GetLength(0); i++)
+                for (int j = 0; j < x.GetLength(1); j++)
+                {
+                    double th = Math.Tanh(x[i, j]);
+                    r[i, j] = 1 - th * th; // tanh'(x) = 1 - tanh(x)^2
+                }
+
+            return r;
+        };
+
+        public Tanh() : base(tanh, tanhPrime)
+        {
+
         }
     }
 
