@@ -41,12 +41,12 @@ namespace SurfaceSeek
         public virtual double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
             // Backward pass
-            double[,] useableLearningRate = new double[1, weights.GetLength(1)];
+            double[,] useableLearningRate = new double[1, weights.GetLength(1)]; // Guarda
             for (int i = 0; i < useableLearningRate.GetLength(1); i++)
-                useableLearningRate[0, i] = learningRate;
+                useableLearningRate[i, 0] = learningRate;
 
             // Compute the gradient of the loss function with respect to the weights and biases
-            var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(inputs));
+            var weightsGradient = Functions.MatrixMultiply(Functions.Transpose(inputs), outputGradient);
 
             // Compute the gradient of the luss function with respect to the inputs
             var r = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the inputs
