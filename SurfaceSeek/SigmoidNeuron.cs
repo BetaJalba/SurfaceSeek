@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using static SurfaceSeek.Tanh;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace SurfaceSeek
 {
@@ -16,6 +17,13 @@ namespace SurfaceSeek
 
         public NeuronLayer()
         {
+        }
+
+        public NeuronLayer(NeuronLayer self)
+        {
+            inputs = self.inputs;
+            weights = self.weights;
+            biases = self.biases;
         }
 
         public NeuronLayer(int inputSize, int outputSize)
@@ -41,19 +49,16 @@ namespace SurfaceSeek
         public virtual double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
             // Backward pass
-            double[,] useableLearningRate = new double[1, weights.GetLength(1)]; // Guarda
-            for (int i = 0; i < useableLearningRate.GetLength(1); i++)
-                useableLearningRate[i, 0] = learningRate;
 
             // Compute the gradient of the loss function with respect to the weights and biases
-            var weightsGradient = Functions.MatrixMultiply(Functions.Transpose(inputs), outputGradient);
+            var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(inputs));
 
             // Compute the gradient of the luss function with respect to the inputs
             var r = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the inputs
 
             // Update weights and biases with new values
-            weights = Functions.MatrixSubtraction(Functions.MatrixMultiply(useableLearningRate, weightsGradient), weights);
-            biases = Functions.MatrixSubtraction(Functions.MatrixMultiply(useableLearningRate, outputGradient), biases);
+            weights = Functions.MatrixSubtraction(Functions.MatrixLinearMultiply(learningRate, weightsGradient), weights);
+            biases = Functions.MatrixSubtraction(Functions.MatrixLinearMultiply(learningRate, outputGradient), biases);
 
             return r;
         }
@@ -68,6 +73,12 @@ namespace SurfaceSeek
 
         public ActivationLayer() : base()
         {
+        }
+
+        public ActivationLayer(Func<double[,], double[,]> activation, Func<double[,], double[,]> activationPrime, NeuronLayer self) : base(self)
+        {
+            this.activation = activation;
+            this.activationPrime = activationPrime; // The derivative of activation
         }
 
         public ActivationLayer(Func<double[,], double[,]> activation, Func<double[,], double[,]> activationPrime) : base()
@@ -119,6 +130,11 @@ namespace SurfaceSeek
         {
 
         }
+
+        public Tanh(NeuronLayer self) : base(tanh, tanhPrime, self)
+        {
+
+        }
     }
 
     public static class Functions
@@ -148,6 +164,19 @@ namespace SurfaceSeek
                     gradient[i, j] = scale * (predicted[i, j] - real[i, j]);
 
             return gradient;
+        }
+
+        public static double[,] MatrixLinearMultiply(double n, double[,] m)
+        {
+            int mRows = m.GetLength(0);
+            int mCols = m.GetLength(1);
+
+            double[,] result = new double[mRows, mCols];
+            for (int i = 0; i < mRows; i++)
+                for (int j = 0; j < mCols; j++)
+                    result[i, j] += m[i, j] * n;
+
+            return result;
         }
 
         public static double[,] MatrixMultiply(double[,] a, double[,] b)

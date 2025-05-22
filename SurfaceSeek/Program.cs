@@ -1,6 +1,5 @@
 ﻿// 6 = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0)
 using SurfaceSeek;
-using Numpy;
 
 double[][,] X = new double[4][,];
 double[][,] Y = new double[4][,];
@@ -21,10 +20,10 @@ Y[3] = new double[,] { { 0 } };
 
 NeuronLayer[] network = 
     { 
-        new NeuronLayer(2, 3), 
-        new Tanh(), 
-        new NeuronLayer(3, 1), 
-        new Tanh() 
+        new NeuronLayer(2, 3), // Layer
+        new Tanh(), // Activation
+        new NeuronLayer(3, 1), // Layer
+        new Tanh() // Activation
     };
 
 int epochs = 10000;
@@ -58,5 +57,8 @@ for(int i = 0; i < epochs; i++)
         error /= len;
 
         Console.WriteLine(error);
+
+        // Propagazione avanti
+        Array.Reverse(network);
     }
 }
