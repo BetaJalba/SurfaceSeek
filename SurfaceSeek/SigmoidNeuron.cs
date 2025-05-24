@@ -36,9 +36,9 @@ namespace SurfaceSeek
 
             for (int i = 0; i < outputSize; i++)
                 for (int j = 0; j < inputSize; j++)
-                    weights[i, j] = rand.NextDouble(); // Initialize weights randomly
+                    weights[i, j] = (rand.NextDouble() * 2) - 1; // Initialize weights randomly
             for (int i = 0; i < outputSize; i++)
-                biases[i, 0] = rand.NextDouble(); // Initialize biases randomly
+                biases[i, 0] = (rand.NextDouble() * 2) - 1; // Initialize biases randomly
         }
 
         public virtual double[,] ForwardPropagation(double[,] inputs)

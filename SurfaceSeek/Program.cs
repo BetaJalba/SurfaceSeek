@@ -21,7 +21,7 @@ Y[3] = new double[] { 0 };
 
 
 
-NeuralNetwork net = new(1, 2, 3, 1);
+NeuralNetwork net = new(0, 2, 3, 1);
 
 int epochs = 10000;
 double learningRate = 0.01;
