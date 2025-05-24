@@ -85,6 +85,54 @@ namespace SurfaceSeek
             return (r, error);
         }
 
+        public (double[][], double) Learn(double learningRate, double[][] inputs, double[] outputs) // Learn function returns the accuracy and predicted value
+        {
+            var error = 0.0;
+            double[][] r = new double[inputs.Length][];
+
+            for (int i = 0; i < inputs.Length; i++)
+            {    
+
+                // Transpose inputs so is can be fed into the network
+                double[,] transposedInputs = transposeInputs(inputs[i]);
+                double[,] transposedOutputs = transposeInputs(outputs[i]);
+
+                // Aggiorna input iniziale
+                double[,] output = transposedInputs;
+                double[,] realOutput = transposedOutputs;
+
+                // Propagazione avanti
+                foreach (var layer in network)
+                {
+                    output = layer.ForwardPropagation(output);
+                }
+                    
+
+                r[i] = deMatrix(output);
+
+                // Calcolo errore
+                error += Functions.Cost(realOutput, output);
+
+                // Propagazione indietro
+                Array.Reverse(network);
+
+                var gradient = Functions.CostPrime(realOutput, output);
+                foreach (var layer in network)
+                    gradient = layer.BackwardPropagation(learningRate, gradient);
+
+                // Computa accuracy
+                //accuracy = (1 - error) * 100;
+
+                // Reset array
+                Array.Reverse(network);
+            }
+
+            var len = inputs[0].Length;
+            error /= len;
+
+            return (r, error);
+        }
+
         double[,] transposeInputs(params double[] inputs) 
         {
             double[,] toTranspose = new double[1, inputs.Length];

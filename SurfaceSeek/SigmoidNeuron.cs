@@ -30,15 +30,24 @@ namespace SurfaceSeek
         public NeuronLayer(int inputSize, int outputSize)
         {
             Random rand = new();
-
             weights = new double[outputSize, inputSize];
             biases = new double[outputSize, 1];
 
+            double stddev = Math.Sqrt(2.0 / inputSize); // He initialization stddev
+
             for (int i = 0; i < outputSize; i++)
+            {
                 for (int j = 0; j < inputSize; j++)
-                    weights[i, j] = (rand.NextDouble() * 2) - 1; // Initialize weights randomly
-            for (int i = 0; i < outputSize; i++)
-                biases[i, 0] = (rand.NextDouble() * 2) - 1; // Initialize biases randomly
+                {
+                    // Box-Muller transform to generate normal-distributed random numbers
+                    double u1 = 1.0 - rand.NextDouble();
+                    double u2 = 1.0 - rand.NextDouble();
+                    double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
+
+                    weights[i, j] = randStdNormal * stddev;
+                }
+                biases[i, 0] = 0.0; // Initialize biases to zero
+            }
         }
 
         public virtual double[,] ForwardPropagation(double[,] inputs)
@@ -205,6 +214,24 @@ namespace SurfaceSeek
             Console.WriteLine("]");
         }
 
+        public static double[][] ConvertToJagged(double[,] matrix)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            double[][] jagged = new double[rows][];
+            for (int i = 0; i < rows; i++)
+            {
+                jagged[i] = new double[cols];
+                for (int j = 0; j < cols; j++)
+                {
+                    jagged[i][j] = matrix[i, j];
+                }
+            }
+
+            return jagged;
+        }
+
         public static double Cost(double[,] real, double[,] predicted)
         {
             int rows = real.GetLength(0);
@@ -312,6 +339,24 @@ namespace SurfaceSeek
             int h = matrix.GetLength(1);
 
             double[,] result = new double[h, w];
+
+            for (int i = 0; i < w; i++)
+            {
+                for (int j = 0; j < h; j++)
+                {
+                    result[j, i] = matrix[i, j];
+                }
+            }
+
+            return result;
+        }
+
+        public static byte[,] Transpose(byte[,] matrix)
+        {
+            int w = matrix.GetLength(0);
+            int h = matrix.GetLength(1);
+
+            byte[,] result = new byte[h, w];
 
             for (int i = 0; i < w; i++)
             {

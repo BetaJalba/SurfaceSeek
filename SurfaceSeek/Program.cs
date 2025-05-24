@@ -3,28 +3,18 @@ using ScottPlot;
 using SurfaceSeek;
 using System.Diagnostics;
 
-double[][] X = new double[4][];
-double[][] Y = new double[4][];
+var images = MnistReader.ReadImagesAsDouble("train-images.idx3-ubyte", 1000);
+var labels = MnistReader.ReadLabelsAsDouble("train-labels.idx1-ubyte", 1000);
 
-// Inputs
-X[0] = new double[] { 0, 0 };
-X[1] = new double[] { 0, 1 };
-X[2] = new double[] { 1, 0 };
-X[3] = new double[] { 1, 1 };
+// Display first pixel of first image and label
+Console.WriteLine(images[0, 0]); // pixel value (0-255)
+Console.WriteLine(labels[0]);    // label (0-9)
 
 
-// Outputs
-Y[0] = new double[] { 0 };
-Y[1] = new double[] { 1 };
-Y[2] = new double[] { 1 };
-Y[3] = new double[] { 0 };
+NeuralNetwork net = new(0, 784, 256, 1);
 
-
-
-NeuralNetwork net = new(0, 2, 3, 1);
-
-int epochs = 10000;
-double learningRate = 0.01;
+int epochs = 4;
+double learningRate = 0.001;
 
 double[] xs = new double[epochs];
 double[] ys = new double[epochs];
@@ -35,7 +25,7 @@ for (int i = 0; i < epochs; i++)
     (double[][] output, double accuracy) results;
 
     
-    results = net.Learn(learningRate, X, Y);
+    results = net.Learn(learningRate, Functions.ConvertToJagged(images), labels);
 
     xs[i] = i;
     ys[i] = results.accuracy;
@@ -58,15 +48,4 @@ Process.Start(new ProcessStartInfo
 });
 
 
-
-for (int i = 0; i < 4; i++)
-{
-    double[][] res;
-
-    res = net.Learn(learningRate, X, Y).Item1;
-
-    Functions.PrintArray(X[i]);
-    Functions.PrintArray(res[i]);
-    Console.WriteLine(Y[i][0]);
-}
 

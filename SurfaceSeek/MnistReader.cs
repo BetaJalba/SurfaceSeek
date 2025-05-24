@@ -60,6 +60,56 @@ namespace SurfaceSeek
             return labels;
         }
 
+        public static double[,] ReadImagesAsDouble(string filePath, int numberOfImages, int imageSize = 28 * 28)
+        {
+            double[,] images = new double[numberOfImages, imageSize];
+
+            using (var fs = new FileStream(filePath, FileMode.Open))
+            using (var br = new BinaryReader(fs))
+            {
+                int magic = ReverseBytes(br.ReadInt32());
+                int numImages = ReverseBytes(br.ReadInt32());
+                int numRows = ReverseBytes(br.ReadInt32());
+                int numCols = ReverseBytes(br.ReadInt32());
+
+                if (numImages < numberOfImages)
+                    throw new Exception("Not enough images in file.");
+
+                for (int i = 0; i < numberOfImages; i++)
+                {
+                    for (int j = 0; j < imageSize; j++)
+                    {
+                        // Normalize to [0.0, 1.0]
+                        images[i, j] = br.ReadByte() / 255.0;
+                    }
+                }
+            }
+
+            return images;
+        }
+
+        public static double[] ReadLabelsAsDouble(string filePath, int numberOfLabels)
+        {
+            double[] labels = new double[numberOfLabels];
+
+            using (var fs = new FileStream(filePath, FileMode.Open))
+            using (var br = new BinaryReader(fs))
+            {
+                int magic = ReverseBytes(br.ReadInt32());
+                int numLabels = ReverseBytes(br.ReadInt32());
+
+                if (numLabels < numberOfLabels)
+                    throw new Exception("Not enough labels in file.");
+
+                for (int i = 0; i < numberOfLabels; i++)
+                {
+                    labels[i] = br.ReadByte(); // Can also one-hot encode later
+                }
+            }
+
+            return labels;
+        }
+
         private static int ReverseBytes(int v)
         {
             byte[] intAsBytes = BitConverter.GetBytes(v);
