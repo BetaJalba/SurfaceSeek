@@ -1,64 +1,72 @@
 ﻿// 6 = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0)
+using ScottPlot;
 using SurfaceSeek;
+using System.Diagnostics;
 
-double[][,] X = new double[4][,];
-double[][,] Y = new double[4][,];
+double[][] X = new double[4][];
+double[][] Y = new double[4][];
 
 // Inputs
-X[0] = new double[,] { { 0 }, { 0 } };
-X[1] = new double[,] { { 0 }, { 1 } };
-X[2] = new double[,] { { 1 }, { 0 } };
-X[3] = new double[,] { { 1 }, { 1 } };
+X[0] = new double[] { 0, 0 };
+X[1] = new double[] { 0, 1 };
+X[2] = new double[] { 1, 0 };
+X[3] = new double[] { 1, 1 };
 
 
 // Outputs
-Y[0] = new double[,] { { 0 } };
-Y[1] = new double[,] { { 1 } };
-Y[2] = new double[,] { { 1 } };
-Y[3] = new double[,] { { 0 } };
+Y[0] = new double[] { 0 };
+Y[1] = new double[] { 1 };
+Y[2] = new double[] { 1 };
+Y[3] = new double[] { 0 };
 
 
-NeuronLayer[] network = 
-    { 
-        new NeuronLayer(2, 3), // Layer
-        new Tanh(), // Activation
-        new NeuronLayer(3, 1), // Layer
-        new Tanh() // Activation
-    };
+
+NeuralNetwork net = new(1, 2, 3, 1);
 
 int epochs = 10000;
-double learningRate = 0.1;
+double learningRate = 0.01;
 
-for(int i = 0; i < epochs; i++)
+double[] xs = new double[epochs];
+double[] ys = new double[epochs];
+
+
+for (int i = 0; i < epochs; i++)
 {
-    var error = 0.0;
-    var len = 0;
+    (double[][] output, double accuracy) results;
 
-    for (int j = 0; j < X.Length; j++)
-    {
-        // Aggiorna input iniziale
-        double[,] output = X[j];
+    
+    results = net.Learn(learningRate, X, Y);
 
-        // Propagazione avanti
-        foreach (var layer in network)
-            output = layer.ForwardPropagation(output);
-
-        // Calcolo errore
-        error += Functions.Cost(Y[j], output);
-
-        // Propagazione indietro
-        Array.Reverse(network);
-
-        var gradient = Functions.CostPrime(Y[j], output);
-        foreach (var layer in network)
-            gradient = layer.BackwardPropagation(learningRate, gradient);
-
-        len = X.Length;
-        error /= len;
-
-        Console.WriteLine(error);
-
-        // Propagazione avanti
-        Array.Reverse(network);
-    }
+    xs[i] = i;
+    ys[i] = results.accuracy;
+    Console.WriteLine(results.accuracy);
 }
+
+// Plot
+ScottPlot.Plot myPlot = new();
+
+myPlot.Add.Scatter(xs, ys);
+//myPlot.Axes.SetLimits(0, epochs, 0, 120);
+
+string filePath = "error.png";
+myPlot.SavePng(filePath, 400, 300);
+
+Process.Start(new ProcessStartInfo
+{
+    FileName = filePath,
+    UseShellExecute = true // Required for opening files in .NET Core
+});
+
+
+
+for (int i = 0; i < 4; i++)
+{
+    double[][] res;
+
+    res = net.Learn(learningRate, X, Y).Item1;
+
+    Functions.PrintArray(X[i]);
+    Functions.PrintArray(res[i]);
+    Console.WriteLine(Y[i][0]);
+}
+

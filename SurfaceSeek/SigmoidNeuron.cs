@@ -12,6 +12,7 @@ namespace SurfaceSeek
     public class NeuronLayer
     {
         protected double[,] inputs;
+        protected double[,] outputs;
         double[,] weights; // Inputs to the layer
         double[,] biases; // Weights for each input
 
@@ -42,8 +43,9 @@ namespace SurfaceSeek
 
         public virtual double[,] ForwardPropagation(double[,] inputs)
         {
-            this.inputs = Functions.MatrixSum(Functions.MatrixMultiply(weights, inputs), biases);
-            return this.inputs;
+            this.inputs = inputs; // Save last inputs
+            outputs = Functions.MatrixSum(Functions.MatrixMultiply(weights, inputs), biases); // Return output
+            return outputs;
         }
 
         public virtual double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
@@ -63,7 +65,7 @@ namespace SurfaceSeek
             return r;
         }
 
-        
+
     }
 
     public class ActivationLayer : NeuronLayer
@@ -89,13 +91,13 @@ namespace SurfaceSeek
 
         public override double[,] ForwardPropagation(double[,] inputs)
         {
-            this.inputs = inputs;
-            return activation(inputs);
+            this.inputs = activation(inputs);
+            return this.inputs;
         }
 
         public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
-            return Functions.MatrixMultiply(outputGradient, activationPrime(this.inputs));
+            return Functions.HadamardProduct(outputGradient, activationPrime(inputs));
         }
     }
 
@@ -137,8 +139,72 @@ namespace SurfaceSeek
         }
     }
 
+    public class ReLU : ActivationLayer
+    {
+        static Func<double[,], double[,]> forward = x =>
+        {
+            double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+
+            for (int i = 0; i < x.GetLength(0); i++)
+                for (int j = 0; j < x.GetLength(1); j++)
+                    r[i, j] = x[i, j] > 0 ? x[i, j] : 0.01 * x[i, j]; // Leaky relu
+
+            return r;
+        };
+
+        static Func<double[,], double[,]> backward = x =>
+        {
+            double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+
+            for (int i = 0; i < x.GetLength(0); i++)
+                for (int j = 0; j < x.GetLength(1); j++)
+                {
+                    r[i, j] = x[i, j] > 0 ? 1 : 0.01; // Blocks the gradient if input is < 0
+                }
+
+            return r;
+        };
+
+        public ReLU() : base(forward, backward)
+        {
+
+        }
+    }
+
     public static class Functions
     {
+        public static void PrintArray(double[] array)
+        {
+            Console.Write("[");
+            foreach (var item in array)
+            {
+                Console.Write($" {item} ");
+            }
+            Console.WriteLine("]");
+        }
+
+        public static void PrintMatrix(double[,] matrix)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            Console.WriteLine("[");
+
+            for (int i = 0; i < rows; i++)
+            {
+                Console.Write("  [");
+                for (int j = 0; j < cols; j++)
+                {
+                    Console.Write(matrix[i, j]);
+                    if (j < cols - 1)
+                        Console.Write(", ");
+                }
+                Console.WriteLine("]" + (i < rows - 1 ? "," : ""));
+            }
+
+            Console.WriteLine("]");
+        }
+
         public static double Cost(double[,] real, double[,] predicted)
         {
             int rows = real.GetLength(0);
@@ -174,8 +240,23 @@ namespace SurfaceSeek
             double[,] result = new double[mRows, mCols];
             for (int i = 0; i < mRows; i++)
                 for (int j = 0; j < mCols; j++)
-                    result[i, j] += m[i, j] * n;
+                    result[i, j] = m[i, j] * n;
 
+            return result;
+        }
+
+        public static double[,] HadamardProduct(double[,] a, double[,] b)
+        {
+            int aRows = a.GetLength(0);
+            int aCols = a.GetLength(1);
+            int bRows = b.GetLength(0);
+            int bCols = b.GetLength(1);
+            if (aRows != bRows || aCols != bCols)
+                throw new ArgumentException("Matrices must have the same dimensions.");
+            double[,] result = new double[aRows, aCols];
+            for (int i = 0; i < aRows; i++)
+                for (int j = 0; j < aCols; j++)
+                    result[i, j] = a[i, j] * b[i, j];
             return result;
         }
 
