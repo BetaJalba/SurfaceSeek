@@ -58,7 +58,39 @@ namespace SurfaceSeek
             return jagged;
         }
 
-        public static double Cost(double[,] real, double[,] predicted)
+        public static double Cost(double[,] yTrue, double[,] yPred)
+        {
+            double epsilon = 1e-12;
+            double sum = 0;
+
+            for (int i = 0; i < yTrue.GetLength(0); i++)
+            {
+                double y = yTrue[i, 0];
+                double p = Math.Clamp(yPred[i, 0], epsilon, 1 - epsilon); // Avoid log(0)
+
+                sum += -(y * Math.Log(p) + (1 - y) * Math.Log(1 - p));
+            }
+
+            return sum / yTrue.GetLength(0); // Average per sample
+        }
+
+        public static double[,] CostPrime(double[,] yTrue, double[,] yPred)
+        {
+            double epsilon = 1e-12;
+            double[,] grad = new double[yTrue.GetLength(0), yTrue.GetLength(1)];
+
+            for (int i = 0; i < yTrue.GetLength(0); i++)
+            {
+                double y = yTrue[i, 0];
+                double p = Math.Clamp(yPred[i, 0], epsilon, 1 - epsilon);
+
+                grad[i, 0] = -(y / p) + (1 - y) / (1 - p);
+            }
+
+            return grad;
+        }
+
+        /*public static double Cost(double[,] real, double[,] predicted)
         {
             int rows = real.GetLength(0);
             int cols = real.GetLength(1);
@@ -83,7 +115,7 @@ namespace SurfaceSeek
                     gradient[i, j] = scale * (predicted[i, j] - real[i, j]);
 
             return gradient;
-        }
+        }*/
 
         public static double[,] MatrixLinearMultiply(double n, double[,] m)
         {

@@ -64,11 +64,11 @@ namespace SurfaceSeek
             { "Vicenza", 51 }
         };
 
-        static Dictionary<string, double> ResultsMap = new()
+        static Dictionary<string, int> ResultsMap = new()
         {
-            { "H", 1 },
-            { "D", 0 },
-            { "A", -1 },
+            { "H", 0 },
+            { "D", 1 },
+            { "A", 2 },
         };
 
         const int teams = 52;
@@ -109,13 +109,13 @@ namespace SurfaceSeek
                     if (lastGamesAverage[SquadMap[split[2]]].Count == 0)
                         averages[0] = 0;
                     else
-                        averages[0] = lastGamesAverage[SquadMap[split[2]]].Average();
+                        averages[0] = Normalize(lastGamesAverage[SquadMap[split[2]]].Average());
 
                     // Get last 5 games average of away team
                     if (lastGamesAverage[SquadMap[split[3]]].Count == 0)
                         averages[1] = 0;
                     else
-                        averages[1] = lastGamesAverage[SquadMap[split[3]]].Average();
+                        averages[1] = Normalize(lastGamesAverage[SquadMap[split[3]]].Average());
                     
                     // Update average for home
                     if (lastGamesAverage[SquadMap[split[2]]].Count >= 5)
@@ -128,7 +128,10 @@ namespace SurfaceSeek
                     lastGamesAverage[SquadMap[split[3]]].Add(double.Parse(split[5]));
 
                     inputs.Add(home.Concat(away).Concat(averages).ToArray()); // Array of size 52 * 2 + 2 = 106
-                    outputs.Add(new double[] { ResultsMap[split[6]] }); // Array of size 1
+
+                    double[] win = new double[3];
+                    win[ResultsMap[split[6]]] = 1;
+                    outputs.Add(win); // Array of size 3
                 }
             }
 
@@ -136,6 +139,11 @@ namespace SurfaceSeek
             r.Item2 = outputs.ToArray();
 
             return r;
+        }
+
+        static double Normalize(double val, double min = 0, double max = 5)
+        {
+            return 2 * ((val - min) / (max - min)) - 1;
         }
     }
 }

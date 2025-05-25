@@ -116,7 +116,7 @@ namespace SurfaceSeek
                 error += Functions.Cost(realOutput, output);
             }
 
-            var len = inputs[0].Length;
+            var len = inputs.Length;
             error /= len;
 
             return (r, error);
