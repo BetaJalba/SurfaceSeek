@@ -1,36 +1,52 @@
 ﻿// 6 = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0)
+using Newtonsoft.Json;
 using ScottPlot;
 using SurfaceSeek;
 using System.Diagnostics;
-
-var images = MnistReader.ReadImagesAsDouble("train-images.idx3-ubyte", 1000);
-var labels = MnistReader.ReadLabelsAsDouble("train-labels.idx1-ubyte", 1000);
-
-// Display first pixel of first image and label
-Console.WriteLine(images[0, 0]); // pixel value (0-255)
-Console.WriteLine(labels[0]);    // label (0-9)
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 
-NeuralNetwork net = new(0, 784, 256, 1);
+var trainingData = DatasetConverter.Convert("Serie A.csv");
 
-int epochs = 4;
+NeuralNetwork net;
+
+if (!File.Exists("weights.json"))
+    net = new(0, 106, 48, 24, 1);
+else
+    net = Newtonsoft.Json.JsonConvert.DeserializeObject<NeuralNetwork>(File.ReadAllText("weights.json"), new JsonSerializerSettings
+    {
+        TypeNameHandling = TypeNameHandling.Auto
+    });
+
+/*var results = net.Learn(0.001, trainingData.inputs, trainingData.outputs);
+
+Functions.PrintArray(trainingData.outputs[1]);
+Functions.PrintArray(results.Item1[1]);*/
+
+int epochs = 100;
 double learningRate = 0.001;
 
 double[] xs = new double[epochs];
 double[] ys = new double[epochs];
-
 
 for (int i = 0; i < epochs; i++)
 {
     (double[][] output, double accuracy) results;
 
     
-    results = net.Learn(learningRate, Functions.ConvertToJagged(images), labels);
+    results = net.Learn(learningRate, trainingData.inputs, trainingData.outputs);
 
     xs[i] = i;
     ys[i] = results.accuracy;
     Console.WriteLine(results.accuracy);
 }
+
+string file = "weights.json";
+File.WriteAllText(file, Newtonsoft.Json.JsonConvert.SerializeObject(net, Newtonsoft.Json.Formatting.Indented, new JsonSerializerSettings()
+{
+    ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
+    TypeNameHandling = TypeNameHandling.All
+}));
 
 // Plot
 ScottPlot.Plot myPlot = new();
@@ -47,5 +63,9 @@ Process.Start(new ProcessStartInfo
     UseShellExecute = true // Required for opening files in .NET Core
 });
 
+net = Newtonsoft.Json.JsonConvert.DeserializeObject<NeuralNetwork>(File.ReadAllText("weights.json"), new JsonSerializerSettings
+{
+    TypeNameHandling = TypeNameHandling.Auto
+});
 
 

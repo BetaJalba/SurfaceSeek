@@ -9,7 +9,12 @@ namespace SurfaceSeek
 {
     public class NeuralNetwork
     {
-        NeuronLayer[] network;
+        public NeuronLayer[] network;
+
+        public NeuralNetwork()
+        {
+
+        }
 
         public NeuralNetwork(int activation, params int[] neuronsPerLayer) // 0 ReLU, 1 Sigmoid
         {
@@ -79,21 +84,21 @@ namespace SurfaceSeek
                 Array.Reverse(network);
             }
 
-            var len = inputs[0].Length;
+            var len = inputs.Length;
             error /= len;
 
             return (r, error);
         }
 
-        public (double[][], double) Learn(double learningRate, double[][] inputs, double[] outputs) // Learn function returns the accuracy and predicted value
+        public (double[][], double) Test(double[][] inputs, double[][] outputs) // Learn function returns the accuracy and predicted value
         {
             var error = 0.0;
             double[][] r = new double[inputs.Length][];
 
             for (int i = 0; i < inputs.Length; i++)
-            {    
+            {
 
-                // Transpose inputs so is can be fed into the network
+                // Transpose inputs so they can be fed into the network
                 double[,] transposedInputs = transposeInputs(inputs[i]);
                 double[,] transposedOutputs = transposeInputs(outputs[i]);
 
@@ -103,28 +108,12 @@ namespace SurfaceSeek
 
                 // Propagazione avanti
                 foreach (var layer in network)
-                {
                     output = layer.ForwardPropagation(output);
-                }
-                    
 
                 r[i] = deMatrix(output);
 
                 // Calcolo errore
                 error += Functions.Cost(realOutput, output);
-
-                // Propagazione indietro
-                Array.Reverse(network);
-
-                var gradient = Functions.CostPrime(realOutput, output);
-                foreach (var layer in network)
-                    gradient = layer.BackwardPropagation(learningRate, gradient);
-
-                // Computa accuracy
-                //accuracy = (1 - error) * 100;
-
-                // Reset array
-                Array.Reverse(network);
             }
 
             var len = inputs[0].Length;
@@ -132,6 +121,8 @@ namespace SurfaceSeek
 
             return (r, error);
         }
+
+        #region QOL FUNCTIONS
 
         double[,] transposeInputs(params double[] inputs) 
         {
@@ -154,5 +145,9 @@ namespace SurfaceSeek
 
             return r;
         }
+
+        #endregion
     }
+
+
 }
