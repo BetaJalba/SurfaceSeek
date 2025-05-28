@@ -58,7 +58,7 @@ namespace SurfaceSeek
             return jagged;
         }
 
-        public static double Cost(double[,] yTrue, double[,] yPred)
+        /*public static double Cost(double[,] yTrue, double[,] yPred)
         {
             double epsilon = 1e-12;
             double sum = 0;
@@ -88,9 +88,9 @@ namespace SurfaceSeek
             }
 
             return grad;
-        }
+        }*/
 
-        /*public static double Cost(double[,] real, double[,] predicted)
+        public static double Cost(double[,] real, double[,] predicted)
         {
             int rows = real.GetLength(0);
             int cols = real.GetLength(1);
@@ -115,7 +115,7 @@ namespace SurfaceSeek
                     gradient[i, j] = scale * (predicted[i, j] - real[i, j]);
 
             return gradient;
-        }*/
+        }
 
         public static double[,] MatrixLinearMultiply(double n, double[,] m)
         {

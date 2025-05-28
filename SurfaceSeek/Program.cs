@@ -6,7 +6,7 @@ using System.Diagnostics;
 using static SkiaSharp.HarfBuzz.SKShaper;
 
 
-var trainingData = DatasetConverter.Convert("Serie A.csv");
+var trainingData = DatasetConverter.Convert("Cleaned_Dataset_No_Flight_Days.csv");
 
 int newSize = trainingData.inputs.Length / 2;
 
@@ -23,7 +23,7 @@ for (int i = 0, j = 0; i < trainingData.inputs.Length && j < newSize; i += 2, j+
 NeuralNetwork net;
 
 //if (!File.Exists("weights.json"))
-    net = new(0, 106, 16, 3);
+net = new(0, trainingData.inputs[0].Length + 1, 8, 1);
 //else
 //    net = Newtonsoft.Json.JsonConvert.DeserializeObject<NeuralNetwork>(File.ReadAllText("weights.json"), new JsonSerializerSettings
 //    {
@@ -44,7 +44,7 @@ double[] ys = new double[epochs];
 for (int i = 0; i < epochs; i++)
 {
     (double[][] output, double accuracy) results;
-    
+
     results = net.Learn(learningRate, reducedInputs, reducedOutputs);
 
     learningRate = learningRate * Math.Exp(-i / 200.0);
