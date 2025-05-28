@@ -23,28 +23,34 @@ namespace SurfaceSeek
             { "Afternoon", 0 },
             { "Evening", 1 },
             { "Night", 2 },
-            { "Morning", 2 },
-            { "Early_Morning", 2 }
+            { "Morning", 3 },
+            { "Early_Morning", 4 },
+            { "Late_Night", 5 }
         };
 
         static Dictionary<string, int> stopsMap = new()
         {
             { "zero", 0 },
             { "one", 1 },
-            { "two", 2 },
-            { "three", 2 }
+            { "two_or_more", 2 }
         };
 
         static Dictionary<string, int> airlineMap = new()
         {
             { "Indigo", 0 },
-            { "Air India", 1 },
+            { "Air_India", 1 },
             { "SpiceJet", 2 },
             { "Vistara", 3 },
             { "GO_FIRST", 4 },
-            { "AirAsia India", 5 },
+            { "AirAsia", 5 },
             { "Akasa Air", 6 },
             { "Alliance Air", 7 }
+        };
+
+        static Dictionary<string, int> pricingMap = new()
+        {
+            { "Economy", 0 },
+            { "Business", 1 }
         };
 
         const int cities = 6;
@@ -64,32 +70,40 @@ namespace SurfaceSeek
                     var line = sr.ReadLine();
                     var split = line.Split(',');
 
-                    double[] airline = new double[1];
+                    double[] airline = new double[airlineMap.Count];
                     double[] source_city = new double[cities];
-                    double[] times = new double[3];
+                    double[] departure_time = new double[timeMap.Count];
+                    double[] stops = new double[stopsMap.Count];
+                    double[] arrival_time = new double[timeMap.Count];
                     double[] destionation_city = new double[cities];
+                    double[] classes = new double[pricingMap.Count];
                     double[] duration = new double[1];
 
-                    airline[0] = airlineMap[split[0]];
+                    airline[airlineMap[split[0]]] = 1;
 
                     source_city[cityIdMap[split[1]]] = 1;
 
-                    times[0] = timeMap[split[2]];
-                    times[1] = stopsMap[split[3]];
-                    times[2] = timeMap[split[4]];
+                    departure_time[timeMap[split[2]]] = 1;
+                    stops[stopsMap[split[3]]] = 1;
+                    arrival_time[timeMap[split[4]]] = 1;
 
                     destionation_city[cityIdMap[split[5]]] = 1;
 
-                    duration[0] = double.Parse(split[6]);
+                    classes[pricingMap[split[6]]] = 1;
+
+                    duration[0] = double.Parse(split[7]) / 100;
 
                     inputs.Add(airline.Concat(source_city)
-                        .Concat(times)
+                        .Concat(departure_time)
+                        .Concat(stops)
+                        .Concat(arrival_time)
                         .Concat(destionation_city)
+                        .Concat(classes)
                         .Concat(duration)
                         .ToArray());
 
                     double[] price = new double[1];
-                    price[0] = double.Parse(split[7]);
+                    price[0] = double.Parse(split[8]) / 100;
                     outputs.Add(price);
                 }
             }

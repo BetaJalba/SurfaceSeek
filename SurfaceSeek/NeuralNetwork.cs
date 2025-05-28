@@ -26,20 +26,10 @@ namespace SurfaceSeek
             {
                 network[count++] = new NeuronLayer(neuronsPerLayer[i - 1], neuronsPerLayer[i]);
 
-                bool isLastLayer = i == neuronsPerLayer.Length - 1;
-
-                if (!isLastLayer)
-                {
-                    if (activation == 0)
-                        network[count++] = new ReLU();
-                    else
-                        network[count++] = new Tanh();
-                }
+                if (activation == 0)
+                    network[count++] = new ReLU();
                 else
-                {
-                    // Output layer uses sigmoid/tanh for XOR
-                    network[count++] = new Tanh(); // or new Sigmoid()
-                }
+                    network[count++] = new Tanh();
             }
 
             Console.WriteLine("Network Generated!");
@@ -99,12 +89,19 @@ namespace SurfaceSeek
             {
 
                 // Transpose inputs so they can be fed into the network
-                double[,] transposedInputs = transposeInputs(inputs[i]);
-                double[,] transposedOutputs = transposeInputs(outputs[i]);
+                try
+                {
+                    double[,] transposedInputs = transposeInputs(inputs[i]);
+                    double[,] transposedOutputs = transposeInputs(outputs[i]);
+                }
+                catch
+                {
+                    continue;
+                }
 
                 // Aggiorna input iniziale
-                double[,] output = transposedInputs;
-                double[,] realOutput = transposedOutputs;
+                double[,] output = transposeInputs(inputs[i]);
+                double[,] realOutput = transposeInputs(outputs[i]);
 
                 // Propagazione avanti
                 foreach (var layer in network)
@@ -126,10 +123,18 @@ namespace SurfaceSeek
 
         double[,] transposeInputs(params double[] inputs) 
         {
-            double[,] toTranspose = new double[1, inputs.Length];
+            double[,] toTranspose = new double[1,1];
+            try
+            {
+                toTranspose = new double[1, inputs.Length];
 
-            for (int i = 0; i < inputs.Length; i++)
-                toTranspose[0, i] = inputs[i];
+                for (int i = 0; i < inputs.Length; i++)
+                    toTranspose[0, i] = inputs[i];
+            }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException();
+            }
 
             return Functions.Transpose(toTranspose);
         }
