@@ -6,24 +6,23 @@ using System.Diagnostics;
 using static SkiaSharp.HarfBuzz.SKShaper;
 
 
-var trainingData = DatasetConverter.Convert("Cleaned_Dataset_No_Flight_Day.csv");
+var trainingData = DatasetConverter.Convert("Cleaned_Dataset_No_Flight_Days.csv");
 
-int newSize = (int)(trainingData.inputs.Length / 10);
+int newSize = (int)(trainingData.inputs.Length / 100);
 
 double[][] reducedInputs = new double[newSize][];
 double[][] reducedOutputs = new double[newSize][];
 
-for (int i = 0, j = 0; i < trainingData.inputs.Length && j < newSize; i += 10, j++)
+for (int i = 0, j = 0; i < trainingData.inputs.Length && j < newSize; i += 100, j++)
 {
     reducedInputs[j] = trainingData.inputs[i];
     reducedOutputs[j] = trainingData.outputs[i];
 }
 
-
 NeuralNetwork net;
 
 //if (!File.Exists("weights.json"))
-net = new(0, trainingData.inputs[0].Length, 18, 6, 1);
+net = new(0, trainingData.inputs[0].Length, 24, 8, 5);
 //else
 //    net = Newtonsoft.Json.JsonConvert.DeserializeObject<NeuralNetwork>(File.ReadAllText("weights.json"), new JsonSerializerSettings
 //    {
@@ -35,8 +34,8 @@ net = new(0, trainingData.inputs[0].Length, 18, 6, 1);
 Functions.PrintArray(trainingData.outputs[1]);
 Functions.PrintArray(results.Item1[1]);*/
 
-int epochs = 100;
-double learningRate = 0.000001;
+int epochs = 1000;
+double learningRate = 0.0015;
 
 double[] xs = new double[epochs];
 double[] ys = new double[epochs];
@@ -45,9 +44,9 @@ for (int i = 0; i < epochs; i++)
 {
     (double[][] output, double accuracy) results;
 
-    results = net.Learn(learningRate, reducedInputs, reducedOutputs);
+    results = net.Learn(learningRate, reducedInputs, reducedOutputs, 32);
 
-    learningRate = learningRate * Math.Exp(-i / 200.0);
+    //learningRate = learningRate * Math.Exp(-i / 200.0);
 
     //for (int j = 0; j < results.output.Length; j++)
     //{

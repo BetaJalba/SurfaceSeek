@@ -58,6 +58,28 @@ namespace SurfaceSeek
             return jagged;
         }
 
+        public static double[,] Clip(double[,] matrix, double minValue, double maxValue)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+            double[,] clipped = new double[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    if (matrix[i, j] < minValue)
+                        clipped[i, j] = minValue;
+                    else if (matrix[i, j] > maxValue)
+                        clipped[i, j] = maxValue;
+                    else
+                        clipped[i, j] = matrix[i, j];
+                }
+            }
+
+            return clipped;
+        }
+
         /*public static double Cost(double[,] yTrue, double[,] yPred)
         {
             double epsilon = 1e-12;
@@ -98,7 +120,7 @@ namespace SurfaceSeek
 
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    sum += Math.Pow(predicted[i, j] - real[i, j], 2);
+                    sum += Math.Pow(real[i, j] - predicted[i, j], 2);
 
             return sum / (rows * cols);
         }
@@ -112,7 +134,7 @@ namespace SurfaceSeek
 
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    gradient[i, j] = scale * (predicted[i, j] - real[i, j]);
+                    gradient[i, j] = scale * (predicted[i, j] - real[i, j]); // Correct direction
 
             return gradient;
         }
@@ -173,6 +195,29 @@ namespace SurfaceSeek
             for (int i = 0; i < aRows; i++)
                 for (int j = 0; j < aCols; j++)
                     result[i, j] = a[i, j] + b[i, j];
+            return result;
+        }
+
+        public static double[,] MatrixBiasSum(double[,] matrix, double[,] bias)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            // Check bias shape: should be [rows x 1]
+            if (bias.GetLength(0) != rows || bias.GetLength(1) != 1)
+                throw new ArgumentException("Bias must have shape [rows x 1]");
+
+            double[,] result = new double[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                double biasValue = bias[i, 0]; // single bias value for the row
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = matrix[i, j] + biasValue;
+                }
+            }
+
             return result;
         }
 

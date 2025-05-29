@@ -49,7 +49,8 @@ namespace SurfaceSeek
         public virtual double[,] ForwardPropagation(double[,] inputs)
         {
             this.inputs = inputs; // Save last inputs
-            outputs = Functions.MatrixSum(Functions.MatrixMultiply(weights, inputs), biases); // Return output
+
+            outputs = Functions.MatrixBiasSum(Functions.MatrixMultiply(weights, inputs), biases); // Return output
             return outputs;
         }
 
@@ -60,14 +61,30 @@ namespace SurfaceSeek
             // Compute the gradient of the loss function with respect to the weights and biases
             var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(inputs));
 
+            weightsGradient = Functions.Clip(weightsGradient, -1.0, 1.0);
+            //outputGradient = Functions.Clip(outputGradient, -1.0, 1.0);
+
             // Compute the gradient of the luss function with respect to the inputs
-            var r = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the inputs
+            var inputGradient = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the inputs
 
             // Update weights and biases with new values
-            weights = Functions.MatrixSubtraction(Functions.MatrixLinearMultiply(learningRate, weightsGradient), weights);
-            biases = Functions.MatrixSubtraction(Functions.MatrixLinearMultiply(learningRate, outputGradient), biases);
+            weights = Functions.MatrixSubtraction(weights, Functions.MatrixLinearMultiply(learningRate, weightsGradient));
 
-            return r;
+            var biasGradient = new double[biases.GetLength(0), 1];
+            for (int i = 0; i < outputGradient.GetLength(0); i++)
+            {
+                double sum = 0.0;
+                for (int j = 0; j < outputGradient.GetLength(1); j++)
+                {
+                    sum += outputGradient[i, j];
+                }
+                biasGradient[i, 0] = sum;
+            }
+            biasGradient = Functions.Clip(biasGradient, -1.0, 1.0);
+
+            biases = Functions.MatrixSubtraction(biases, Functions.MatrixLinearMultiply(learningRate, biasGradient));
+
+            return inputGradient;
         }
     }
 
@@ -156,6 +173,32 @@ namespace SurfaceSeek
 
                 return r;
             })
+        { }
+    }
+
+    public class Sigmoid : ActivationLayer
+    {
+        public Sigmoid() : base(
+            x =>
+            {
+                double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+                for (int i = 0; i < x.GetLength(0); i++)
+                    for (int j = 0; j < x.GetLength(1); j++)
+                        r[i, j] = 1.0 / (1.0 + Math.Exp(-x[i, j]));
+                return r;
+            },
+            x =>
+            {
+                double[,] r = new double[x.GetLength(0), x.GetLength(1)];
+                for (int i = 0; i < x.GetLength(0); i++)
+                    for (int j = 0; j < x.GetLength(1); j++)
+                    {
+                        double sig = 1.0 / (1.0 + Math.Exp(-x[i, j]));
+                        r[i, j] = sig * (1 - sig);
+                    }
+                return r;
+            }
+        )
         { }
     }
 

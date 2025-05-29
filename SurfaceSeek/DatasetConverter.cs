@@ -102,8 +102,20 @@ namespace SurfaceSeek
                         .Concat(duration)
                         .ToArray());
 
-                    double[] price = new double[1];
-                    price[0] = double.Parse(split[8]) / 100;
+                    double[] price = new double[5];
+                    //price[] = double.Parse(split[8]) / 100;
+
+                    var cost = double.Parse(split[8]);
+                    if (cost < 5000)
+                        price[0] = 1;
+                    else if (cost < 10000)
+                        price[1] = 1;
+                    else if (cost < 15000)
+                        price[2] = 1;
+                    else if (cost < 20000)
+                        price[3] = 1;
+                    else if (cost < 25000)
+                        price[4] = 1;
                     outputs.Add(price);
                 }
             }
@@ -112,6 +124,11 @@ namespace SurfaceSeek
             r.Item2 = outputs.ToArray();
 
             return r;
+        }
+
+        public static double Normalize(double x, double minVal, double maxVal)
+        {
+            return (x - minVal) / (maxVal - minVal);
         }
     }
 }
