@@ -74,7 +74,10 @@ namespace SurfaceSeek
 
                 // Propagazione avanti
                 foreach (var layer in network)
+                {
                     output = layer.ForwardPropagation(output);
+                }
+                    
 
                 r[i] = deBatch(output);
 

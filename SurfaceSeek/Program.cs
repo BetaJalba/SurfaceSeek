@@ -22,7 +22,7 @@ for (int i = 0, j = 0; i < trainingData.inputs.Length && j < newSize; i += 100, 
 NeuralNetwork net;
 
 //if (!File.Exists("weights.json"))
-net = new(0, trainingData.inputs[0].Length, 24, 8, 5);
+net = new(0, trainingData.inputs[0].Length, 24, 5);
 //else
 //    net = Newtonsoft.Json.JsonConvert.DeserializeObject<NeuralNetwork>(File.ReadAllText("weights.json"), new JsonSerializerSettings
 //    {
@@ -34,8 +34,8 @@ net = new(0, trainingData.inputs[0].Length, 24, 8, 5);
 Functions.PrintArray(trainingData.outputs[1]);
 Functions.PrintArray(results.Item1[1]);*/
 
-int epochs = 1000;
-double learningRate = 0.0015;
+int epochs = 200;
+double learningRate = 0.001;
 
 double[] xs = new double[epochs];
 double[] ys = new double[epochs];

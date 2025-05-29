@@ -110,8 +110,8 @@ namespace SurfaceSeek
 
         public override double[,] ForwardPropagation(double[,] inputs)
         {
-            this.inputs = activation(inputs);
-            return this.inputs;
+            this.inputs = inputs;
+            return activation(inputs);
         }
 
         public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
@@ -184,7 +184,12 @@ namespace SurfaceSeek
                 double[,] r = new double[x.GetLength(0), x.GetLength(1)];
                 for (int i = 0; i < x.GetLength(0); i++)
                     for (int j = 0; j < x.GetLength(1); j++)
+                    {
                         r[i, j] = 1.0 / (1.0 + Math.Exp(-x[i, j]));
+                        if (r[i, j] > 1)
+                            Console.WriteLine("a");
+                    }
+                        
                 return r;
             },
             x =>
