@@ -30,7 +30,7 @@ namespace SurfaceSeek
                 // If last layer, use sigmoid if requested
                 if (i == neuronsPerLayer.Length - 1)
                 {
-                    network[count++] = new Sigmoid();
+                    network[count++] = new Softmax();   
                 }
                 else
                 {
@@ -78,18 +78,19 @@ namespace SurfaceSeek
                     output = layer.ForwardPropagation(output);
                 }
                     
-
                 r[i] = deBatch(output);
 
                 // Calcolo errore
                 error += Functions.Cost(realOutput, output);
 
+                var gradient = Functions.MatrixSubtraction(output, realOutput); // yPred - yTrue
+
                 // Propagazione indietro
                 Array.Reverse(network);
 
-                var gradient = Functions.CostPrime(realOutput, output);
                 foreach (var layer in network)
-                    gradient = layer.BackwardPropagation(learningRate, gradient);
+                    if (!(layer is Softmax))
+                        gradient = layer.BackwardPropagation(learningRate, gradient);
 
                 // Computa accuracy
                 //accuracy = (1 - error) * 100;
@@ -104,41 +105,24 @@ namespace SurfaceSeek
             return (r, error);
         }
 
-        public (double[][], double) Test(double[][] inputs, double[][] outputs) // Learn function returns the accuracy and predicted value
+        public (double[], double) Test(double[] inputs, double[] outputs) // Learn function returns the accuracy and predicted value
         {
             var error = 0.0;
-            double[][] r = new double[inputs.Length][];
+            double[] r = new double[outputs.Length];
 
-            for (int i = 0; i < inputs.Length; i++)
-            {
+            // Transpose inputs so they can be fed into the network
+            // Aggiorna input iniziale
+            double[,] output = transposeInputs(inputs);
+            double[,] realOutput = transposeInputs(outputs);
 
-                // Transpose inputs so they can be fed into the network
-                try
-                {
-                    double[,] transposedInputs = transposeInputs(inputs[i]);
-                    double[,] transposedOutputs = transposeInputs(outputs[i]);
-                }
-                catch
-                {
-                    continue;
-                }
+            // Propagazione avanti
+            foreach (var layer in network)
+                output = layer.ForwardPropagation(output);
 
-                // Aggiorna input iniziale
-                double[,] output = transposeInputs(inputs[i]);
-                double[,] realOutput = transposeInputs(outputs[i]);
+            r = deMatrix(output);
 
-                // Propagazione avanti
-                foreach (var layer in network)
-                    output = layer.ForwardPropagation(output);
-
-                r[i] = deMatrix(output);
-
-                // Calcolo errore
-                error += Functions.Cost(realOutput, output);
-            }
-
-            var len = inputs.Length;
-            error /= len;
+            // Calcolo errore
+            error += Functions.Cost(realOutput, output);
 
             return (r, error);
         }

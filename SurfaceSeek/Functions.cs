@@ -80,7 +80,33 @@ namespace SurfaceSeek
             return clipped;
         }
 
+        // Categorical Cross-Entropy Loss for one-hot labels + Softmax
         public static double Cost(double[,] yTrue, double[,] yPred)
+        {
+            double epsilon = 1e-12;
+            double sum = 0;
+            int batchSize = yTrue.GetLength(0);
+            int outputs = yTrue.GetLength(1);
+
+            for (int i = 0; i < batchSize; i++)
+            {
+                for (int j = 0; j < outputs; j++)
+                {
+                    double y = yTrue[i, j];
+                    double p = Math.Clamp(yPred[i, j], epsilon, 1 - epsilon);
+                    sum += -y * Math.Log(p); // only one y=1 per row
+                }
+            }
+
+            return sum / batchSize;
+        }
+
+        public static double[,] CostPrime(double[,] yTrue, double[,] yPred)
+        {
+            return MatrixSubtraction(yPred, yTrue); // yPred - yTrue
+        }
+
+        /*public static double Cost(double[,] yTrue, double[,] yPred)
         {
             double epsilon = 1e-12;
             double sum = 0;
@@ -120,7 +146,7 @@ namespace SurfaceSeek
             }
 
             return grad;
-        }
+        }*/
 
         /*public static double Cost(double[,] real, double[,] predicted)
         {

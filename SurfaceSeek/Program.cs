@@ -33,8 +33,8 @@ net = new(0, trainingData.inputs[0].Length, 24, 5);
 Functions.PrintArray(trainingData.outputs[1]);
 Functions.PrintArray(results.Item1[1]);*/
 
-int epochs = 200;
-double learningRate = 0.001;
+int epochs = 100;
+double learningRate = 0.0001;
 
 double[] xs = new double[epochs];
 double[] ys = new double[epochs];
@@ -43,7 +43,7 @@ for (int i = 0; i < epochs; i++)
 {
     (double[][] output, double accuracy) results;
 
-    results = net.Learn(learningRate, reducedInputs, reducedOutputs, 32);
+    results = net.Learn(learningRate, reducedInputs, reducedOutputs, 16);
 
     //learningRate = learningRate * Math.Exp(-i / 200.0);
 
@@ -56,9 +56,11 @@ for (int i = 0; i < epochs; i++)
     xs[i] = i;
     ys[i] = results.accuracy;
     Console.WriteLine(results.accuracy);
-    if (i == epochs - 1) 
-        Console.WriteLine("Finito");
 }
+
+Functions.PrintArray(net.Test(reducedInputs[542], reducedOutputs[542]).Item1);
+
+Console.WriteLine("Finito");
 
 string file = "weights.json";
 File.WriteAllText(file, Newtonsoft.Json.JsonConvert.SerializeObject(net, Newtonsoft.Json.Formatting.Indented, new JsonSerializerSettings()

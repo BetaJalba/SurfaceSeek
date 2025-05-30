@@ -60,13 +60,13 @@ namespace SurfaceSeek
         public virtual double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
             // Compute the gradient of the loss function with respect to the weights
-            var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(outputs));
+            var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(inputs));
 
             // Compute the gradient of the luss function with respect to the inputs
             var inputGradient = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the 
             
             // Compute bias gradient
-            /*var biasGradient = new double[biases.GetLength(0), 1];
+            var biasGradient = new double[biases.GetLength(0), 1];
             for (int i = 0; i < outputGradient.GetLength(0); i++)
             {
                 double sum = 0.0;
@@ -74,13 +74,13 @@ namespace SurfaceSeek
                 {
                     sum += outputGradient[i, j];
                 }
-                biasGradient[i, 0] = sum;
-            }*/
+                biasGradient[i, 0] = sum / outputGradient.GetLength(1);
+            }
 
             // Clip gradient to prevent gradient explosion
             weightsGradient = Functions.Clip(weightsGradient, -1.0, 1.0);
             // Clip gradient to prevent gradient explosion
-            var biasGradient = Functions.Clip(outputGradient, -1.0, 1.0);
+            biasGradient = Functions.Clip(biasGradient, -1.0, 1.0);
 
             // Update weights and biases with new values
             weights = Functions.MatrixSubtraction(weights, Functions.MatrixLinearMultiply(learningRate, weightsGradient));
@@ -116,11 +116,6 @@ namespace SurfaceSeek
             this.outputs = activation(inputs);
             return this.outputs;
         }
-
-        public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
-        {
-            return Functions.HadamardProduct(outputGradient, activationPrime(outputs));
-        }
     }
 
     public class Tanh : ActivationLayer // Outputs [-1, 1]
@@ -149,6 +144,11 @@ namespace SurfaceSeek
 
                 return r;
             }){}
+
+        public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
+        {
+            return Functions.HadamardProduct(outputGradient, activationPrime(inputs));
+        }
     }
 
     public class ReLU : ActivationLayer // Outputs [0, positiveInfinity)
@@ -177,6 +177,11 @@ namespace SurfaceSeek
                 return r;
             })
         { }
+
+        public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
+        {
+            return Functions.HadamardProduct(outputGradient, activationPrime(inputs));
+        }
     }
 
     public class Sigmoid : ActivationLayer // Outputs [0, 1]
@@ -208,6 +213,53 @@ namespace SurfaceSeek
             }
         )
         { }
+
+        public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
+        {
+            return Functions.HadamardProduct(outputGradient, activationPrime(inputs));
+        }
+    }
+
+    public class Softmax : ActivationLayer
+    {
+        public Softmax() : base(
+            z =>
+            {
+                int batchSize = z.GetLength(1);
+                int numClasses = z.GetLength(0);
+                double[,] result = new double[numClasses, batchSize];
+
+                for (int b = 0; b < batchSize; b++)
+                {
+                    double max = double.MinValue;
+                    for (int j = 0; j < numClasses; j++)
+                        max = Math.Max(max, z[j, b]);
+
+                    double sumExp = 0;
+                    for (int j = 0; j < numClasses; j++)
+                    {
+                        result[j, b] = Math.Exp(z[j, b] - max);
+                        sumExp += result[j, b];
+                    }
+
+                    for (int j = 0; j < numClasses; j++)
+                        result[j, b] /= sumExp;
+                }
+
+                return result;
+            },
+            x =>
+            {
+                // Gradient is usually combined with cross-entropy, so no need for exact derivative here
+                return null;
+            }
+        )
+        { }
+
+        public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
+        {
+            return outputGradient;
+        }
     }
 
     #endregion
