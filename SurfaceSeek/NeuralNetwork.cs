@@ -127,6 +127,23 @@ namespace SurfaceSeek
             return (r, error);
         }
 
+        public double[] Test(double[] inputs) // Learn function returns the accuracy and predicted value
+        {
+            double[] r = new double[inputs.Length];
+
+            // Transpose inputs so they can be fed into the network
+            // Aggiorna input iniziale
+            double[,] output = transposeInputs(inputs);
+
+            // Propagazione avanti
+            foreach (var layer in network)
+                output = layer.ForwardPropagation(output);
+
+            r = deMatrix(output);
+
+            return r;
+        }
+
         #region QOL FUNCTIONS
 
         double[,] transposeInputs(params double[] inputs) 
