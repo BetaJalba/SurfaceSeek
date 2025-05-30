@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using ScottPlot;
 using SurfaceSeek;
 using System.Diagnostics;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 
 var trainingData = DatasetConverter.Convert("Cleaned_Dataset_No_Flight_Days.csv");

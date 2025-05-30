@@ -15,8 +15,8 @@ namespace SurfaceSeek
     {
         protected double[,] inputs;
         protected double[,] outputs;
-        public double[,] weights; // Inputs to the layer
-        public double[,] biases; // Weights for each input
+        public double[,] weights;
+        public double[,] biases;
 
         public NeuronLayer()
         {
@@ -25,6 +25,7 @@ namespace SurfaceSeek
 
         public NeuronLayer(int inputSize, int outputSize)
         {
+            // Initialize random weights
             Random rand = new();
             weights = new double[outputSize, inputSize];
             biases = new double[outputSize, 1];
@@ -50,27 +51,22 @@ namespace SurfaceSeek
         {
             this.inputs = inputs; // Save last inputs
 
+            // Sum bias column for each of the inputs column
             outputs = Functions.MatrixBiasSum(Functions.MatrixMultiply(weights, inputs), biases); // Return output
             return outputs;
         }
 
+        // Backward pass
         public virtual double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
-            // Backward pass
-
-            // Compute the gradient of the loss function with respect to the weights and biases
-            var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(inputs));
-
-            weightsGradient = Functions.Clip(weightsGradient, -1.0, 1.0);
-            //outputGradient = Functions.Clip(outputGradient, -1.0, 1.0);
+            // Compute the gradient of the loss function with respect to the weights
+            var weightsGradient = Functions.MatrixMultiply(outputGradient, Functions.Transpose(outputs));
 
             // Compute the gradient of the luss function with respect to the inputs
-            var inputGradient = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the inputs
-
-            // Update weights and biases with new values
-            weights = Functions.MatrixSubtraction(weights, Functions.MatrixLinearMultiply(learningRate, weightsGradient));
-
-            var biasGradient = new double[biases.GetLength(0), 1];
+            var inputGradient = Functions.MatrixMultiply(Functions.Transpose(weights), outputGradient); // Compute the gradient of the loss function with respect to the 
+            
+            // Compute bias gradient
+            /*var biasGradient = new double[biases.GetLength(0), 1];
             for (int i = 0; i < outputGradient.GetLength(0); i++)
             {
                 double sum = 0.0;
@@ -79,9 +75,15 @@ namespace SurfaceSeek
                     sum += outputGradient[i, j];
                 }
                 biasGradient[i, 0] = sum;
-            }
-            biasGradient = Functions.Clip(biasGradient, -1.0, 1.0);
+            }*/
 
+            // Clip gradient to prevent gradient explosion
+            weightsGradient = Functions.Clip(weightsGradient, -1.0, 1.0);
+            // Clip gradient to prevent gradient explosion
+            var biasGradient = Functions.Clip(outputGradient, -1.0, 1.0);
+
+            // Update weights and biases with new values
+            weights = Functions.MatrixSubtraction(weights, Functions.MatrixLinearMultiply(learningRate, weightsGradient));
             biases = Functions.MatrixSubtraction(biases, Functions.MatrixLinearMultiply(learningRate, biasGradient));
 
             return inputGradient;
@@ -111,16 +113,17 @@ namespace SurfaceSeek
         public override double[,] ForwardPropagation(double[,] inputs)
         {
             this.inputs = inputs;
-            return activation(inputs);
+            this.outputs = activation(inputs);
+            return this.outputs;
         }
 
         public override double[,] BackwardPropagation(double learningRate, double[,] outputGradient)
         {
-            return Functions.HadamardProduct(outputGradient, activationPrime(inputs));
+            return Functions.HadamardProduct(outputGradient, activationPrime(outputs));
         }
     }
 
-    public class Tanh : ActivationLayer
+    public class Tanh : ActivationLayer // Outputs [-1, 1]
     {
         public Tanh() : base(
             x => 
@@ -148,7 +151,7 @@ namespace SurfaceSeek
             }){}
     }
 
-    public class ReLU : ActivationLayer
+    public class ReLU : ActivationLayer // Outputs [0, positiveInfinity)
     {
         public ReLU() : base(
             x =>
@@ -176,7 +179,7 @@ namespace SurfaceSeek
         { }
     }
 
-    public class Sigmoid : ActivationLayer
+    public class Sigmoid : ActivationLayer // Outputs [0, 1]
     {
         public Sigmoid() : base(
             x =>
