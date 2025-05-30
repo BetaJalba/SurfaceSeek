@@ -108,3 +108,12 @@ Console.Write("Insert duration:");
 input += Console.ReadLine();
 
 var output = net.Test(DatasetConverter.ConvertString(input));
+
+// Find max
+var max = 0;
+
+for (int i = 0; i < output.Length; i++)
+    if (output[i] >= output[max])
+        max = i;
+
+Console.WriteLine($"Il prezzo del biglietto è: {(max + 1) * 50}€");
